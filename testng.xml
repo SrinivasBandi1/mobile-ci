@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="Suite" parallel="tests">
+    <test name="Pixel">
+        <listeners>
+            <listener class-name="com.intelehealth.listeners.TestListener" />
+        </listeners>
+        <parameter name="emulator" value="true" />
+        <parameter name="platformName" value="Android" />
+        <parameter name="udid" value="emulator-5554" />
+        <parameter name="deviceName" value="Pixel" />
+        <parameter name="systemPort" value="10000" />
+        <classes>
+            <class name="com.intelehealth.tests.AppSetupTest"/>
+        </classes>
+    </test >
+</suite>  

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<suite name="Suite">
+	<test name="M2006C3MII">
+		<listeners>
+			<listener class-name="com.intelehealth.listeners.TestListener" />
+		</listeners>
+		<parameter name="emulator" value="false" />
+		<parameter name="platformName" value="Android" />
+		<parameter name="udid" value="RZCWA20L2MF" />
+		<parameter name="deviceName" value="Samsung" />
+		<parameter name="systemPort" value="10000" />
+		<classes>
+			
+<class name="com.intelehealth.tests.AppSetupTest" />
+	<!--    <class name="com.intelehealth.tests.AddNewPatientTest" />
+			<class name="com.intelehealth.tests.AppointmentsTest" />
+			<class name="com.intelehealth.tests.CloseVisitsTest" />
+			<class name="com.intelehealth.tests.EditProfileTest" />
+			<class name="com.intelehealth.tests.StartVisit1And2StepsTest" />
+			<class name="com.intelehealth.tests.LoginMenuTest" />
+			<class name="com.intelehealth.tests.StartVisit1And2StepsTest" />
+			<class name="com.intelehealth.tests.PrescriptionsTest" />-->
+
+			<!-- Strictly Keep this set as is , we will uncomment when we execute  whole suite. -->
+		<!--<class name="com.intelehealth.tests.AppSetupTest" />
+			<class name="com.intelehealth.tests.AchievementsPageTest" />
+			<class name="com.intelehealth.tests.AddNewPatientTest" />
+			<class name="com.intelehealth.tests.AppointmentsTest" />
+			<class name="com.intelehealth.tests.CloseVisitsTest" />
+			<class name="com.intelehealth.tests.DashboardModuleTest" />
+			<class name="com.intelehealth.tests.EditProfileTest" />
+			<class name="com.intelehealth.tests.FollowupVisitsTest" />
+			<class name="com.intelehealth.tests.LoginMenuTest" />
+			<class name="com.intelehealth.tests.ForgotPasswordTest" />
+			<class name="com.intelehealth.tests.PrescriptionsTest" />
+			<class name="com.intelehealth.tests.EndToEndTest" />
+			<class name="com.intelehealth.tests.FindPatientTest" />
+			<class name="com.intelehealth.tests.NotificationTest" />
+			<class name="com.intelehealth.tests.StartVisit1And2StepsTest" />
+			<class name="com.intelehealth.tests.StartVisit3And4StepsTest" />
+			<class name="com.intelehealth.tests.VisitSummaryTest" />
+			<class name="com.intelehealth.tests.ChangeLanguageAndProtocolTest" />-->
+		</classes>
+	</test>
+</suite> 
