@@ -180,7 +180,7 @@ jobs:
       - name: Install Appium ${{ env.APPIUM_VERSION }}
         run: |
           npm install -g appium@${{ env.APPIUM_VERSION }}
-          appium driver install uiautomator2
+          appium driver install uiautomator2@2.29.1
           appium --version
 
       - name: Enable KVM for hardware acceleration
