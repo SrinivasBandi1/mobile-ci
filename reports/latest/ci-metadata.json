@@ -1,8 +1,8 @@
 {
-  "runId": "28427855429",
-  "runNumber": "6",
+  "runId": "28427871735",
+  "runNumber": "7",
   "branch": "SrinivasBandi1-patch-1",
-  "commit": "85c6b1b6d8469e83d433a3ce39f374cbb7c91937",
+  "commit": "97f2ad707601bd80808876be657f3c80753083b5",
   "triggeredBy": "SrinivasBandi1",
   "workflow": "Mobile Automation CI/CD"
 }
