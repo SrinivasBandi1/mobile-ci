@@ -185,8 +185,7 @@ jobs:
 
       - name: Enable KVM for hardware acceleration
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           sudo apt-get install -y libvirt-clients libvirt-daemon-system
@@ -202,50 +201,14 @@ jobs:
           ram-size: 4096M
           disk-size: 6144M
           heap-size: 512M
-          emulator-options: >-
-            -no-snapshot-save
-            -no-window
-            -gpu swiftshader_indirect
-            -noaudio
-            -no-boot-anim
-            -camera-back none
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            # ── Start Appium server ──────────────────────────
-            appium server \
-              --address 127.0.0.1 \
-              --port 4723 \
-              --log appium-server.log \
-              --log-timestamp \
-              --log-no-colors &
+            appium server --address 127.0.0.1 --port 4723 --log appium-server.log --log-timestamp --log-no-colors &
             APPIUM_PID=$!
-            echo "Appium PID: $APPIUM_PID"
-
-            # Wait for Appium to be ready
-            for i in $(seq 1 30); do
-              if curl -s http://127.0.0.1:4723/status | grep -q '"ready":true'; then
-                echo "Appium is ready (attempt $i)"
-                break
-              fi
-              echo "Waiting for Appium... attempt $i/30"
-              sleep 2
-            done
-
-            # ── Run TestNG suite ─────────────────────────────
-            mvn test \
-              -B \
-              --no-transfer-progress \
-              -Dsurefire.suiteXmlFiles=${{ matrix.suite }} \
-              -DEMULATOR=true \
-              -DPLATFORM_NAME=Android \
-              -DUDID=emulator-5554 \
-              -DDEVICE_NAME=Pixel_5_API_33 \
-              -DSYSTEM_PORT=10000 \
-              -DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk \
-              -Dmaven.test.failure.ignore=true \
-              || true
-
-            # ── Archive Appium logs ──────────────────────────
+            until curl -sf http://127.0.0.1:4723/status | grep -q '"ready":true'; do sleep 2; done
+            echo "Appium ready"
+            mvn test -B --no-transfer-progress -Dsurefire.suiteXmlFiles=${{ matrix.suite }} -DEMULATOR=true -DPLATFORM_NAME=Android -DUDID=emulator-5554 -DDEVICE_NAME=Pixel_5_API_33 -DSYSTEM_PORT=10000 "-DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk" -Dmaven.test.failure.ignore=true || true
             kill $APPIUM_PID 2>/dev/null || true
 
       - name: Upload Allure results
