@@ -1,469 +1,260 @@
-name: Mobile Automation CI/CD
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-on:
-  push:
-    branches: [ main, SrinivasBandi1-patch-1, develop ]
-  pull_request:
-    branches: [ main, master, develop ]
-  workflow_dispatch:
-    inputs:
-      emulator:
-        description: 'Run on emulator (true/false)'
-        required: false
-        default: 'true'
-      testng_suite:
-        description: 'TestNG suite file (testng.xml / realDevice.xml)'
-        required: false
-        default: 'testng.xml'
-      apk_url:
-        description: 'APK download URL (leave blank to use release default)'
-        required: false
-        default: ''
+	<groupId>Intelehealth-Mobile-Automation</groupId>
+	<artifactId>Intelehealth-Mobile-Automation</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 
-# Cancel in-flight runs for the same branch on new push
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+	<name>Intelehealth-Mobile-Automation</name>
+	<!-- FIXME change it to the project's website -->
+	<url>http://www.example.com</url>
 
-env:
-  JAVA_VERSION: '17'
-  NODE_VERSION: '18'
-  APPIUM_VERSION: '2.5.4'
-  APK_RELEASE_URL: 'https://github.com/SrinivasBandi1/mobile-ci/releases/download/v1.0/ida.apk'
-  REPORT_DIR: 'allure-report'
-  ALLURE_RESULTS_DIR: 'allure-results'
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<surefire.plugin.version>3.0.0-M5</surefire.plugin.version>
+		<appium.version>8.6.0</appium.version>
+		<allure.version>2.27.0</allure.version>
+		<allure.maven.version>2.12.0</allure.maven.version>
+		<surefire.version>3.1.2</surefire.version>
 
-jobs:
-  # ─────────────────────────────────────────────
-  # STAGE 1 — BUILD & DEPENDENCY VALIDATION
-  # ─────────────────────────────────────────────
-  build:
-    name: Build & Validate Dependencies
-    runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.maven-cache.outputs.cache-hit }}
+		<aspectj.version>1.9.21</aspectj.version>
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+	</properties>
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: 'maven'
+	<dependencies>
+		<dependency>
+			<groupId>io.appium</groupId>
+			<artifactId>java-client</artifactId>
+			<!--<version>9.2.3</version>-->
+			<version>8.6.0</version>
+		</dependency>
+		<!--  ══════════════════════════════════════════════
+             ALLURE REPORTING
+             allure-testng hooks into TestNG lifecycle automatically.
+             aspectjweaver is REQUIRED — without it @Step, @Attachment,
+             and listener-based result capture will not fire.
+        ══════════════════════════════════════════════  -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-testng</artifactId>
+			<version>${allure.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-java-commons</artifactId>
+			<version>${allure.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>${aspectj.version}</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<!--<version>4.19.1</version>-->
+			<version>4.12.0</version>
+		</dependency>
 
-      - name: Cache Maven dependencies
-        id: maven-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
 
-      - name: Compile & validate project
-        run: mvn clean compile test-compile -B --no-transfer-progress
+		<!-- https://mvnrepository.com/artifact/org.testng/testng -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>7.8.0</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20230618</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.20.0</version>
+		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.20.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.aventstack/extentreports -->
+		<dependency>
+			<groupId>com.aventstack</groupId>
+			<artifactId>extentreports</artifactId>
+			<version>5.1.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.16.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.13.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.javafaker</groupId>
+			<artifactId>javafaker</artifactId>
+			<version>1.0.2</version>
+		</dependency>
 
-      - name: Upload compiled classes
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-classes
-          path: target/
-          retention-days: 1
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>4.4.0</version> <!-- Check for the latest version on Maven
+			Central -->
+			<scope>test</scope>
+		</dependency>
 
-  # ─────────────────────────────────────────────
-  # STAGE 2 — APK DOWNLOAD & CACHE
-  # ─────────────────────────────────────────────
-  prepare-apk:
-    name: Prepare APK Artifact
-    runs-on: ubuntu-latest
-    needs: build
+		<!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20231013</version>
+		</dependency>
 
-    steps:
-      - name: Determine APK URL
-        id: apk-url
-        run: |
-          if [ -n "${{ github.event.inputs.apk_url }}" ]; then
-            echo "url=${{ github.event.inputs.apk_url }}" >> $GITHUB_OUTPUT
-          else
-            echo "url=${{ env.APK_RELEASE_URL }}" >> $GITHUB_OUTPUT
-          fi
+		<dependency>
+			<groupId>com.browserstack</groupId>
+			<artifactId>browserstack-java-sdk</artifactId>
+			<version>LATEST</version>
+			<scope>compile</scope>
+		</dependency>
 
-      - name: Cache APK by URL hash
-        id: apk-cache
-        uses: actions/cache@v4
-        with:
-          path: apk-cache/
-          key: apk-${{ hashFiles('apk-cache/*.apk') }}-${{ steps.apk-url.outputs.url }}
+		<!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-testng</artifactId>
+			<version>2.27.0</version>
+		</dependency>
 
-      - name: Download APK from GitHub Releases
-        if: steps.apk-cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p apk-cache
-          echo "Downloading APK from: ${{ steps.apk-url.outputs.url }}"
-          curl -L \
-            --retry 3 \
-            --retry-delay 5 \
-            --fail \
-            --output apk-cache/ida.apk \
-            "${{ steps.apk-url.outputs.url }}"
-          echo "APK downloaded: $(du -sh apk-cache/ida.apk)"
+	</dependencies>
 
-      - name: Validate APK integrity
-        run: |
-          if [ ! -f apk-cache/ida.apk ]; then
-            echo "ERROR: APK file not found!" && exit 1
-          fi
-          MAGIC=$(xxd -l 4 apk-cache/ida.apk | awk '{print $2$3}')
-          if [[ "$MAGIC" != "504b0304" ]]; then
-            echo "ERROR: File does not appear to be a valid APK (ZIP magic bytes mismatch)" && exit 1
-          fi
-          echo "APK integrity check passed. Size: $(du -sh apk-cache/ida.apk | cut -f1)"
-
-      - name: Upload APK as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-apk
-          path: apk-cache/ida.apk
-          retention-days: 1
-
-  # ─────────────────────────────────────────────
-  # STAGE 3 — APPIUM + EMULATOR + TEST EXECUTION
-  # ─────────────────────────────────────────────
-  test:
-    name: Run Automation Tests
-    runs-on: ubuntu-latest
-    needs: [ build, prepare-apk ]
-
-    strategy:
-      fail-fast: false
-      matrix:
-        # Future-ready: extend matrix for parallel device/suite execution
-        suite: [ 'testng.xml' ]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Restore Maven cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test-apk
-          path: src/test/resources/app/
-        # artifact is uploaded as ida.apk — no rename needed
-
-      - name: Verify APK is in place
-        run: ls -lh src/test/resources/app/ida.apk
-
-      - name: Set up Node.js (for Appium)
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install Appium ${{ env.APPIUM_VERSION }}
-        run: |
-          npm install -g appium@${{ env.APPIUM_VERSION }}
-          appium driver install uiautomator2@2.29.1
-          appium --version
-
-      - name: Enable KVM for hardware acceleration
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          sudo apt-get install -y libvirt-clients libvirt-daemon-system
-
-      - name: Set up Android SDK / Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          profile: pixel_5
-          avd-name: Pixel_5_API_33
-          ram-size: 4096M
-          disk-size: 6144M
-          heap-size: 512M
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: |
-            appium server --address 127.0.0.1 --port 4723 --log appium-server.log --log-timestamp --log-no-colors &
-            APPIUM_PID=$!
-            until curl -sf http://127.0.0.1:4723/status | grep -q '"ready":true'; do sleep 2; done
-            echo "Appium ready"
-            ASPECTJ_JAR="$HOME/.m2/repository/org/aspectj/aspectjweaver/1.9.21/aspectjweaver-1.9.21.jar"
-            mvn test -B --no-transfer-progress -Dsurefire.suiteXmlFiles=${{ matrix.suite }} -DEMULATOR=true -DPLATFORM_NAME=Android -DUDID=emulator-5554 -DDEVICE_NAME=Pixel_5_API_33 -DSYSTEM_PORT=10000 "-DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk" "-DargLine=-javaagent:\"$ASPECTJ_JAR\"" -Dmaven.test.failure.ignore=true || true
-            kill $APPIUM_PID 2>/dev/null || true
-
-      - name: Upload Allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results-${{ matrix.suite }}
-          path: ${{ env.ALLURE_RESULTS_DIR }}/
-          retention-days: 7
-
-      - name: Upload test logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-logs-${{ matrix.suite }}
-          path: |
-            logs/
-            appium-server.log
-            test-output/
-          retention-days: 7
-
-      - name: Upload screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: failure-screenshots-${{ matrix.suite }}
-          path: Screenshots/
-          retention-days: 7
-
-  # ─────────────────────────────────────────────
-  # STAGE 4 — ALLURE REPORT GENERATION
-  # ─────────────────────────────────────────────
-  report:
-    name: Generate & Publish Report
-    runs-on: ubuntu-latest
-    needs: test
-    if: always()
-
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download Allure results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: allure-results-*
-          path: allure-results-raw/
-          merge-multiple: true
-
-      - name: Get Allure history from gh-pages
-        uses: actions/checkout@v4
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages-branch
-
-      - name: Copy Allure history for trend graphs
-        run: |
-          if [ -d gh-pages-branch/history ]; then
-            mkdir -p allure-results-raw/history
-            cp -r gh-pages-branch/history allure-results-raw/
-            echo "Allure history restored for trend graph"
-          else
-            echo "No prior history found — first run"
-          fi
-
-      - name: Install Allure CLI
-        run: |
-          wget -q https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
-          tar -xzf allure-2.27.0.tgz
-          sudo mv allure-2.27.0 /opt/allure
-          sudo ln -sf /opt/allure/bin/allure /usr/local/bin/allure
-          allure --version
-
-      - name: Generate Allure HTML report
-        run: |
-          allure generate allure-results-raw \
-            --output ${{ env.REPORT_DIR }} \
-            --clean
-          echo "Report generated at ${{ env.REPORT_DIR }}"
-
-      - name: Add run metadata to report
-        run: |
-          cat > ${{ env.REPORT_DIR }}/ci-metadata.json << EOF
-          {
-            "runId": "${{ github.run_id }}",
-            "runNumber": "${{ github.run_number }}",
-            "branch": "${{ github.ref_name }}",
-            "commit": "${{ github.sha }}",
-            "triggeredBy": "${{ github.actor }}",
-            "workflow": "${{ github.workflow }}"
-          }
-          EOF
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ env.REPORT_DIR }}
-          publish_branch: gh-pages
-          destination_dir: reports/run-${{ github.run_number }}
-          keep_files: true
-
-      - name: Update latest report symlink index
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ env.REPORT_DIR }}
-          publish_branch: gh-pages
-          destination_dir: reports/latest
-          keep_files: false
-
-      - name: Extract test summary for notification
-        id: summary
-        run: |
-          # Parse Allure summary JSON
-          SUMMARY_FILE="${{ env.REPORT_DIR }}/widgets/summary.json"
-          if [ -f "$SUMMARY_FILE" ]; then
-            TOTAL=$(jq '.statistic.total // 0' "$SUMMARY_FILE")
-            PASSED=$(jq '.statistic.passed // 0' "$SUMMARY_FILE")
-            FAILED=$(jq '.statistic.failed // 0' "$SUMMARY_FILE")
-            BROKEN=$(jq '.statistic.broken // 0' "$SUMMARY_FILE")
-            SKIPPED=$(jq '.statistic.skipped // 0' "$SUMMARY_FILE")
-          else
-            TOTAL=0; PASSED=0; FAILED=0; BROKEN=0; SKIPPED=0
-          fi
-          echo "total=$TOTAL"     >> $GITHUB_OUTPUT
-          echo "passed=$PASSED"   >> $GITHUB_OUTPUT
-          echo "failed=$FAILED"   >> $GITHUB_OUTPUT
-          echo "broken=$BROKEN"   >> $GITHUB_OUTPUT
-          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
-          if [ "$FAILED" -eq 0 ] && [ "$BROKEN" -eq 0 ]; then
-            echo "status=PASSED"  >> $GITHUB_OUTPUT
-          else
-            echo "status=FAILED"  >> $GITHUB_OUTPUT
-          fi
-
-      - name: Save summary as artifact for Slack stage
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-summary
-          path: ${{ env.REPORT_DIR }}/widgets/summary.json
-          retention-days: 1
-
-      - name: Write GitHub Step Summary
-        run: |
-          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest"
-          echo "## Mobile Automation Results — Run #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | ${{ steps.summary.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Total  | ${{ steps.summary.outputs.total }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Passed | ${{ steps.summary.outputs.passed }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Failed | ${{ steps.summary.outputs.failed }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Broken | ${{ steps.summary.outputs.broken }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Skipped| ${{ steps.summary.outputs.skipped }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[View Full Allure Report]($REPORT_URL)" >> $GITHUB_STEP_SUMMARY
-
-    outputs:
-      status:  ${{ steps.summary.outputs.status }}
-      total:   ${{ steps.summary.outputs.total }}
-      passed:  ${{ steps.summary.outputs.passed }}
-      failed:  ${{ steps.summary.outputs.failed }}
-      broken:  ${{ steps.summary.outputs.broken }}
-      skipped: ${{ steps.summary.outputs.skipped }}
-
-  # ─────────────────────────────────────────────
-  # STAGE 5 — SLACK NOTIFICATION
-  # ─────────────────────────────────────────────
-  notify:
-    name: Slack Notification
-    runs-on: ubuntu-latest
-    needs: report
-    if: always()
-
-    steps:
-      - name: Checkout (for notify script)
-        uses: actions/checkout@v4
-
-      - name: Resolve status color and emoji
-        id: meta
-        run: |
-          STATUS="${{ needs.report.outputs.status }}"
-          if [ "$STATUS" = "PASSED" ]; then
-            echo "color=#2EB886"    >> $GITHUB_OUTPUT
-            echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
-          else
-            echo "color=#E01E5A"    >> $GITHUB_OUTPUT
-            echo "emoji=:x:"        >> $GITHUB_OUTPUT
-          fi
-          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest"
-          echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
-
-      - name: Send Slack notification
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ steps.meta.outputs.color }}",
-                  "blocks": [
-                    {
-                      "type": "header",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "${{ steps.meta.outputs.emoji }} Mobile Automation — ${{ needs.report.outputs.status }}"
-                      }
-                    },
-                    {
-                      "type": "section",
-                      "fields": [
-                        { "type": "mrkdwn", "text": "*Branch:*\n`${{ github.ref_name }}`" },
-                        { "type": "mrkdwn", "text": "*Run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|#${{ github.run_number }}>" },
-                        { "type": "mrkdwn", "text": "*Triggered by:*\n${{ github.actor }}" },
-                        { "type": "mrkdwn", "text": "*Commit:*\n`${{ github.sha }}`" }
-                      ]
-                    },
-                    {
-                      "type": "section",
-                      "fields": [
-                        { "type": "mrkdwn", "text": "*Total:*\n${{ needs.report.outputs.total }}" },
-                        { "type": "mrkdwn", "text": "*Passed:*\n:large_green_circle: ${{ needs.report.outputs.passed }}" },
-                        { "type": "mrkdwn", "text": "*Failed:*\n:red_circle: ${{ needs.report.outputs.failed }}" },
-                        { "type": "mrkdwn", "text": "*Skipped:*\n:white_circle: ${{ needs.report.outputs.skipped }}" }
-                      ]
-                    },
-                    {
-                      "type": "actions",
-                      "elements": [
-                        {
-                          "type": "button",
-                          "text": { "type": "plain_text", "text": "View Allure Report" },
-                          "url": "${{ steps.meta.outputs.report_url }}",
-                          "style": "primary"
-                        },
-                        {
-                          "type": "button",
-                          "text": { "type": "plain_text", "text": "View GitHub Run" },
-                          "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+	<build>
+		<pluginManagement><!-- lock down plugins versions to avoid using Maven
+			defaults (may be moved to parent pom) -->
+			<plugins>
+				<!-- clean lifecycle, see
+				https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+				<plugin>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+				<!-- default lifecycle, jar packaging: see
+				https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+				<plugin>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.0</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<argLine>
+							-javaagent:"${com.browserstack:browserstack-java-sdk:jar}"</argLine>
+					</configuration>
+					<version>2.22.1</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>2.5.2</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.8.2</version>
+				</plugin>
+				<!-- site lifecycle, see
+				https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+				<plugin>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.7.1</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<!--  ── Surefire ─────────────────────────────────────────────
+                 CRITICAL: aspectjweaver MUST be passed as -javaagent here.
+                 Without this, Allure @Step and @Attachment annotations are
+                 silently ignored and results are incomplete.
+                 argLine is set directly — not via properties — to avoid
+                 the late-binding issue with maven-dependency-plugin.
+            ────────────────────────────────────────────────────────────  -->
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${surefire.version}</version>
+				<configuration>
+					<argLine>
+						-javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+						-javaagent:"${com.browserstack:browserstack-java-sdk:jar}" </argLine>
+					<suiteXmlFiles>
+						<!--  Override at runtime: mvn test
+						-DsuiteFile=realdevice.xml  -->
+						<suiteXmlFile>${suiteFile}</suiteXmlFile>
+					</suiteXmlFiles>
+					<testFailureIgnore>false</testFailureIgnore>
+					<systemPropertyVariables>
+						<!--  Allure results directory — keep consistent with
+						allure-maven below  -->
+						<allure.results.directory>
+							${project.build.directory}/allure-results </allure.results.directory>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<!--  ── Allure Report Generation ──────────────────────────────
+                 Goal is 'report' not 'serve'.
+                 'serve' tries to open a browser — breaks CI pipelines.
+                 Run report manually: mvn allure:report
+                 View locally:        mvn allure:serve
+            ────────────────────────────────────────────────────────────  -->
+			<plugin>
+				<groupId>io.qameta.allure</groupId>
+				<artifactId>allure-maven</artifactId>
+				<version>${allure.maven.version}</version>
+				<configuration>
+					<reportVersion>${allure.version}</reportVersion>
+					<resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+					<reportDirectory>${project.build.directory}/allure-report</reportDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<id>getClasspathFilenames</id>
+						<goals>
+							<goal>properties</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
