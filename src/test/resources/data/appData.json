@@ -1,0 +1,123 @@
+{
+	"validUser":{
+		"username":"srinivasn",
+		"password":"Nurse@123",
+		"mobile":"8919395287",
+		"newPassword":"Nurse@1234",
+		"updatedMobileNumber":"8919395288",
+		"updatedEmail":"srinivas@intelehealth.org"
+	},
+	"serverDetailsEKAL":{
+        "serverURL":"https://afitraining.ekalarogya.org/",
+		"username":"Nurse1",
+		"password":"Nurse@123",
+	},
+	"inValidPatient":{
+		"patientName":"Computer"
+	},
+	"validPatient":{
+		"patientName":"Sanity"
+	},
+	"invalidPatientID":{
+		"Id":"123XY-Y1"
+	},
+	"personalDetails":{
+		"firstName":"Automation",
+		"lastname":"Patient",
+		"nationalId":"123456",
+		"occupation":"farmer",
+		"lastname1":"Bot",
+		"updatedName":"User B",
+		"updatedNationalId":"78912345",
+		"prescriptionFirstName":"App",
+		"phoneNumber":"8919395287"
+		
+	},
+	"patientAddress":{
+		"pincode":"581320",
+		"pincode1":"123456",
+		"village":"Bhatkal",
+		"address1":"Heble",
+		"address2":"Tenginagundi"
+	},
+	"patientVitalsDetails":{
+		"height":"160",
+		"weight":"60",
+		"bpSystolic":"120",
+		"bpDiastolic":"70",
+		"pulse":"72",
+		"temperature":"98",
+		"spo2":"98",
+		"respiratoryRate":"72",
+		"bMIIndexValue":"23.44 kg/m"
+		},
+	
+	"description":{
+	"value":"Testing"
+	},
+	"registeredPatientDetails":{
+	"gender":"F",
+	"dateOfBirth":"06 March 1982",
+	"age":"41 years",
+	"state":"Karnataka",
+	"country":"India",
+	"district":"Uttara Kannada (Karwar)",
+	"socialCategory":"OBC",
+	"education":"Primary",
+	"economicCategory":"BPL"
+	},
+	"weights":{
+	"weight1":"46",
+	"weight2":"80",
+	"weight3":"90",
+	"weight4":"120",
+	"weight5":"70"
+
+	},
+    "weightStatus":{
+"expectedStatus1":"(Underweight)",
+"expectedStatus2":"(Normal Weight)",
+"expectedStatus3":"(Overweight)",
+"expectedStatus4":"(Moderate Obesity(Class 1))",
+"expectedStatus5":"(Severe Obesity(Class 2))",
+"expectedStatus6":"(Very Severe(Morbid) Obesity(Class 3))"
+
+},
+
+
+"vitalsSummaryDetails":{
+"height":"160 cm",
+"weight":"40 kg",
+"bp":"120/70",
+"pulse":"72 bpm",
+"temperature":"98.1",
+"spo2":"98 %",
+"respiratoryRate":"72 breaths/min",
+"bMI":"23.44 kg/m",
+"bloodGroup":"B+"
+}
+,
+"patientVitalsEditDetails":{
+				"height":"180",
+				"weight":"50",
+				"bpSystolic":"100",
+				"bpDiastolic":"60",
+				"pulse":"78",
+				"temperature":"101",
+				"spo2":"100",
+				"respiratoryRate":"75"
+				},
+"patientVitalsSummaryEditDetails":{
+								"height":"180 cm",
+								"weight":"50 kg",
+								"bp":"100/60",
+								"pulse":"78 bpm",
+								"temperature":"100.9",
+								"spo2":"100 %",
+								"respiratoryRate":"75 breaths/min",
+								"bmi":"15.43 kg/m"
+
+								}
+								
+								
+	}
