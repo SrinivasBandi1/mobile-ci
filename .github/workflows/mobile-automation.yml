@@ -468,7 +468,7 @@ jobs:
                         { "type": "mrkdwn", "text": "*Branch:*\n`${{ github.ref_name }}`" },
                         { "type": "mrkdwn", "text": "*Run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|#${{ github.run_number }}>" },
                         { "type": "mrkdwn", "text": "*Triggered by:*\n${{ github.actor }}" },
-                        { "type": "mrkdwn", "text": "*Commit:*\n`${{ github.sha && github.sha[:7] || 'N/A' }}`" }
+                        { "type": "mrkdwn", "text": "*Commit:*\n`${{ github.sha }}`" }
                       ]
                     },
                     {
