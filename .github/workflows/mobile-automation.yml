@@ -208,7 +208,8 @@ jobs:
             APPIUM_PID=$!
             until curl -sf http://127.0.0.1:4723/status | grep -q '"ready":true'; do sleep 2; done
             echo "Appium ready"
-            mvn test -B --no-transfer-progress -Dsurefire.suiteXmlFiles=${{ matrix.suite }} -DEMULATOR=true -DPLATFORM_NAME=Android -DUDID=emulator-5554 -DDEVICE_NAME=Pixel_5_API_33 -DSYSTEM_PORT=10000 "-DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk" -Dmaven.test.failure.ignore=true || true
+            ASPECTJ_JAR="$HOME/.m2/repository/org/aspectj/aspectjweaver/1.9.21/aspectjweaver-1.9.21.jar"
+            mvn test -B --no-transfer-progress -Dsurefire.suiteXmlFiles=${{ matrix.suite }} -DEMULATOR=true -DPLATFORM_NAME=Android -DUDID=emulator-5554 -DDEVICE_NAME=Pixel_5_API_33 -DSYSTEM_PORT=10000 "-DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk" "-DargLine=-javaagent:\"$ASPECTJ_JAR\"" -Dmaven.test.failure.ignore=true || true
             kill $APPIUM_PID 2>/dev/null || true
 
       - name: Upload Allure results
