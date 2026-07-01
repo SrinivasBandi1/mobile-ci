@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.PointerInput;
@@ -254,30 +255,32 @@ public class AppSetupPage extends BaseTest {
 
 	}
 
-	// Handles the permission prompts during app installation
+	// Selectors that work with both com.android.permissioncontroller (AOSP)
+	// and com.google.android.permissioncontroller (google_apis / CI emulator).
+	private static final By[] PERM_SELECTORS = {
+		By.xpath("//*[contains(@resource-id,'permission_allow_foreground_only_button')]"),
+		By.xpath("//*[contains(@resource-id,'permission_allow_button') and not(contains(@resource-id,'foreground'))]"),
+		By.xpath("//*[contains(@resource-id,'permission_allow_all_button')]"),
+		By.xpath("//android.widget.Button[@text='While using the app']"),
+		By.xpath("//android.widget.Button[@text='Allow']"),
+		By.xpath("//android.widget.Button[@text='Only this time']")
+	};
+
+	// Pre-check: dismiss any dialog already visible at call time.
+	// setupLanguageScreenIsDisplayed() handles dialogs that arrive later.
+	// Never calls navigate().back() — exits the Language Selection screen.
 	public void handlePermissions() {
-		// Uses a 5-second timeout per check. If no dialog is visible, exits immediately
-		// without calling navigate().back() — a back press from Language Selection exits the app.
-		WebDriverWait shortWait = new WebDriverWait(getDriver(), Duration.ofSeconds(5));
-		for (int i = 0; i < 8; i++) {
-			boolean handled = false;
-			try {
-				shortWait.until(ExpectedConditions.elementToBeClickable(whileUsingAppButton)).click();
-				handled = true;
-			} catch (Exception ignored) {}
-			if (!handled) {
+		WebDriverWait w = new WebDriverWait(getDriver(), Duration.ofSeconds(2));
+		for (int i = 0; i < 10; i++) {
+			boolean dismissed = false;
+			for (By sel : PERM_SELECTORS) {
 				try {
-					shortWait.until(ExpectedConditions.elementToBeClickable(allowButton)).click();
-					handled = true;
+					w.until(ExpectedConditions.elementToBeClickable(sel)).click();
+					dismissed = true;
+					break;
 				} catch (Exception ignored) {}
 			}
-			if (!handled) {
-				try {
-					shortWait.until(ExpectedConditions.elementToBeClickable(btnAllowAll)).click();
-					handled = true;
-				} catch (Exception ignored) {}
-			}
-			if (!handled) break;
+			if (!dismissed) break;
 		}
 	}
 
@@ -625,9 +628,34 @@ public class AppSetupPage extends BaseTest {
 		return isDisplayed(locationName);
 	}
 
-	// Check if the setup language screen is displayed
+	// Check if the setup language screen is displayed.
+	// Active loop: waits up to 60s for the English RadioButton while dismissing
+	// any permission dialog that appears during initialization (contacts, camera,
+	// location, notifications). A dialog that pops up AFTER handlePermissions()
+	// returns — e.g. mid-splash — would otherwise block Language Selection forever.
 	public boolean setupLanguageScreenIsDisplayed() throws InterruptedException {
-		return isDisplayed(rdoEnglish, "Setup Language Screen is displayed");
+		WebDriverWait checkWait = new WebDriverWait(getDriver(), Duration.ofSeconds(2));
+		long deadline = System.currentTimeMillis() + 60_000;
+		while (System.currentTimeMillis() < deadline) {
+			// 1. Check if Language Selection is now visible.
+			try {
+				checkWait.until(ExpectedConditions.visibilityOf(rdoEnglish));
+				TestUtils.log().info("Setup Language Screen is displayed");
+				return true;
+			} catch (Exception ignored) {}
+			// 2. Dismiss any permission dialog blocking the screen.
+			WebDriverWait permWait = new WebDriverWait(getDriver(), Duration.ofSeconds(1));
+			for (By sel : PERM_SELECTORS) {
+				try {
+					permWait.until(ExpectedConditions.elementToBeClickable(sel)).click();
+					break;
+				} catch (Exception ignored) {}
+			}
+			Thread.sleep(500);
+		}
+		TestUtils.log().error("Language Selection not visible after 60s. Source: "
+			+ getDriver().getPageSource());
+		return false;
 	}
 
 	// Perform a series of actions to complete the setup process
