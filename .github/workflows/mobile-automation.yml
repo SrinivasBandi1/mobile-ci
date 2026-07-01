@@ -204,11 +204,28 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            appium server --address 127.0.0.1 --port 4723 --log appium-server.log --log-timestamp --log-no-colors &
+            echo "=== Device verification ==="
+            adb devices -l
+            adb -s emulator-5554 shell getprop sys.boot_completed
+            adb -s emulator-5554 shell getprop ro.build.version.release
+            appium server --address 127.0.0.1 --port 4723 --log appium-server.log --log-timestamp --log-no-colors --allow-insecure adb_shell &
             APPIUM_PID=$!
             until curl -sf http://127.0.0.1:4723/status | grep -q '"ready":true'; do sleep 2; done
             echo "Appium ready"
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.CAMERA 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.READ_CONTACTS 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.WRITE_CONTACTS 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.CALL_PHONE 2>/dev/null || true
+            adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.RECORD_AUDIO 2>/dev/null || true
+            mkdir -p debug-screenshots
+            adb -s emulator-5554 shell screencap -p /sdcard/pre_test.png
+            adb -s emulator-5554 pull /sdcard/pre_test.png debug-screenshots/pre_test.png || true
             mvn test -B --no-transfer-progress -Dsurefire.suiteXmlFiles=${{ matrix.suite }} -DEMULATOR=true -DPLATFORM_NAME=Android -DUDID=emulator-5554 -DDEVICE_NAME=Pixel_6_API_36 -DSYSTEM_PORT=10000 "-DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk" -Dmaven.test.failure.ignore=true || true
+            adb -s emulator-5554 shell screencap -p /sdcard/post_test.png 2>/dev/null || true
+            adb -s emulator-5554 pull /sdcard/post_test.png debug-screenshots/post_test.png 2>/dev/null || true
             kill $APPIUM_PID 2>/dev/null || true
 
       - name: Upload Allure results
@@ -228,6 +245,14 @@ jobs:
             logs/
             appium-server.log
             test-output/
+
+      - name: Upload debug screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshots-${{ matrix.suite }}
+          path: debug-screenshots/
+          retention-days: 7
           retention-days: 7
 
       - name: Upload screenshots on failure
