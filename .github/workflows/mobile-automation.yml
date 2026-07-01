@@ -212,6 +212,12 @@ jobs:
             APPIUM_PID=$!
             until curl -sf http://127.0.0.1:4723/status | grep -q '"ready":true'; do sleep 2; done
             echo "Appium ready"
+            mkdir -p debug-screenshots
+            adb -s emulator-5554 shell screencap -p /sdcard/pre_test.png
+            adb -s emulator-5554 pull /sdcard/pre_test.png debug-screenshots/pre_test.png || true
+            echo "=== Installing APK on emulator for pre-test verification ==="
+            adb -s emulator-5554 install -r -t "$(pwd)/src/test/resources/app/ida.apk" && echo "APK installed OK" || echo "APK install failed (non-fatal)"
+            echo "=== Granting runtime permissions ==="
             adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.POST_NOTIFICATIONS 2>/dev/null || true
             adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
             adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
@@ -220,9 +226,16 @@ jobs:
             adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.WRITE_CONTACTS 2>/dev/null || true
             adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.CALL_PHONE 2>/dev/null || true
             adb -s emulator-5554 shell pm grant org.intelehealth.app android.permission.RECORD_AUDIO 2>/dev/null || true
-            mkdir -p debug-screenshots
-            adb -s emulator-5554 shell screencap -p /sdcard/pre_test.png
-            adb -s emulator-5554 pull /sdcard/pre_test.png debug-screenshots/pre_test.png || true
+            echo "=== Launching app to verify it opens (no dialog expected) ==="
+            adb -s emulator-5554 shell monkey -p org.intelehealth.app -c android.intent.category.LAUNCHER 1 2>/dev/null || true
+            sleep 10
+            adb -s emulator-5554 shell screencap -p /sdcard/app_opened.png
+            adb -s emulator-5554 pull /sdcard/app_opened.png debug-screenshots/app_opened.png || true
+            echo "=== Current foreground package ==="
+            adb -s emulator-5554 shell dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp' || true
+            echo "=== Uninstalling pre-test APK so Appium does a clean reinstall ==="
+            adb -s emulator-5554 shell pm uninstall org.intelehealth.app 2>/dev/null || true
+            sleep 2
             mvn test -B --no-transfer-progress -Dsurefire.suiteXmlFiles=${{ matrix.suite }} -DEMULATOR=true -DPLATFORM_NAME=Android -DUDID=emulator-5554 -DDEVICE_NAME=Pixel_6_API_36 -DSYSTEM_PORT=10000 "-DAPK_PATH=$(pwd)/src/test/resources/app/ida.apk" -Dmaven.test.failure.ignore=true || true
             adb -s emulator-5554 shell screencap -p /sdcard/post_test.png 2>/dev/null || true
             adb -s emulator-5554 pull /sdcard/post_test.png debug-screenshots/post_test.png 2>/dev/null || true
@@ -254,11 +267,11 @@ jobs:
           path: debug-screenshots/
           retention-days: 7
 
-      - name: Upload screenshots on failure
-        if: failure()
+      - name: Upload test screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: failure-screenshots-${{ matrix.suite }}
+          name: test-screenshots-${{ matrix.suite }}
           path: Screenshots/
           retention-days: 7
 
