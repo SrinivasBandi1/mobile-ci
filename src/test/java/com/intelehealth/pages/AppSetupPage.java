@@ -21,6 +21,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.intelehealth.base.BaseTest;
 import com.intelehealth.base.CustomElementNotFoundException;
+import com.intelehealth.utils.TestUtils;
 
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
