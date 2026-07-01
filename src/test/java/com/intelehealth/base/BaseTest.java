@@ -929,6 +929,28 @@ public class BaseTest {
 			TestUtils.log().warn("pm clear failed: " + e.getMessage());
 		}
 
+		// pm clear wipes all granted permissions — re-grant them so permission dialogs
+		// never appear during the next test's execution flow.
+		String[] runtimePermissions = {
+			"android.permission.ACCESS_FINE_LOCATION",
+			"android.permission.ACCESS_COARSE_LOCATION",
+			"android.permission.CAMERA",
+			"android.permission.READ_CONTACTS",
+			"android.permission.WRITE_CONTACTS",
+			"android.permission.CALL_PHONE",
+			"android.permission.RECORD_AUDIO",
+			"android.permission.POST_NOTIFICATIONS"
+		};
+		for (String permission : runtimePermissions) {
+			try {
+				getDriver().executeScript("mobile: shell",
+					ImmutableMap.of("command", "pm",
+						"args", Arrays.asList("grant", appPackage, permission)));
+			} catch (Exception e) {
+				TestUtils.log().warn("pm grant failed for " + permission + ": " + e.getMessage());
+			}
+		}
+
 		try {
 			Thread.sleep(1500);
 		} catch (InterruptedException ie) {
