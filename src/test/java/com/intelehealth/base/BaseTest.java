@@ -60,7 +60,6 @@ import com.intelehealth.utils.SessionHealthManager;
 import com.intelehealth.utils.TestUtils;
 
 import io.appium.java_client.AppiumBy;
-
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.InteractsWithApps;
 import io.appium.java_client.android.AndroidDriver;
