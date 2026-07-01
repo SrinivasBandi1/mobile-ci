@@ -253,7 +253,6 @@ jobs:
           name: debug-screenshots-${{ matrix.suite }}
           path: debug-screenshots/
           retention-days: 7
-          retention-days: 7
 
       - name: Upload screenshots on failure
         if: failure()
