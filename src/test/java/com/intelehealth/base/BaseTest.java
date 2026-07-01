@@ -60,6 +60,7 @@ import com.intelehealth.utils.SessionHealthManager;
 import com.intelehealth.utils.TestUtils;
 
 import io.appium.java_client.AppiumBy;
+
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.InteractsWithApps;
 import io.appium.java_client.android.AndroidDriver;
@@ -419,6 +420,31 @@ public class BaseTest {
 			driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(100));
 			setDriver(driver);
 			TestUtils.log().info("[Setup] Driver ready — session: {}", driver.getSessionId());
+
+			// Explicitly grant all runtime permissions immediately after Appium installs
+			// the app. autoGrantPermissions:true may not cover all permissions on API 36
+			// google_apis emulator (e.g. READ_CONTACTS triggers a dialog at first launch).
+			String appPkg = props.getProperty("androidAppPackage");
+			String[] grantPerms = {
+				"android.permission.ACCESS_FINE_LOCATION",
+				"android.permission.ACCESS_COARSE_LOCATION",
+				"android.permission.CAMERA",
+				"android.permission.READ_CONTACTS",
+				"android.permission.WRITE_CONTACTS",
+				"android.permission.CALL_PHONE",
+				"android.permission.RECORD_AUDIO",
+				"android.permission.POST_NOTIFICATIONS"
+			};
+			for (String perm : grantPerms) {
+				try {
+					driver.executeScript("mobile: shell",
+						ImmutableMap.of("command", "pm",
+							"args", Arrays.asList("grant", appPkg, perm)));
+				} catch (Exception e) {
+					TestUtils.log().warn("[Setup] pm grant failed for " + perm + ": " + e.getMessage());
+				}
+			}
+			TestUtils.log().info("[Setup] Runtime permissions explicitly granted for: {}", appPkg);
 
 		} catch (Exception e) {
 			TestUtils.log().fatal("[Setup] Driver initialisation FAILED — {}", e.toString());
