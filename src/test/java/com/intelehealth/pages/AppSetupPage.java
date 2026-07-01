@@ -255,24 +255,30 @@ public class AppSetupPage extends BaseTest {
 	}
 
 	// Handles the permission prompts during app installation
-	public void handlePermissions() throws InterruptedException {
-		for (int j = 0; j < 2; j++) {
+	public void handlePermissions() {
+		// Uses a 5-second timeout per check. If no dialog is visible, exits immediately
+		// without calling navigate().back() — a back press from Language Selection exits the app.
+		WebDriverWait shortWait = new WebDriverWait(getDriver(), Duration.ofSeconds(5));
+		for (int i = 0; i < 8; i++) {
+			boolean handled = false;
 			try {
-				click(whileUsingAppButton);
-				click(whileUsingAppButton);
-
-				for (int i = 0; i < 4; i++) {
-					click(allowButton);
-				}
-				break;
-			} catch (TimeoutException e) {
-				getDriver().navigate().back();
+				shortWait.until(ExpectedConditions.elementToBeClickable(whileUsingAppButton)).click();
+				handled = true;
+			} catch (Exception ignored) {}
+			if (!handled) {
+				try {
+					shortWait.until(ExpectedConditions.elementToBeClickable(allowButton)).click();
+					handled = true;
+				} catch (Exception ignored) {}
 			}
-			// click(allowButton);
-			// click(allowButton);
+			if (!handled) {
+				try {
+					shortWait.until(ExpectedConditions.elementToBeClickable(btnAllowAll)).click();
+					handled = true;
+				} catch (Exception ignored) {}
+			}
+			if (!handled) break;
 		}
-		// click(btnAllowAll);
-
 	}
 
 	public boolean isDisplayedAppLogoAndTaglineText() throws InterruptedException {
